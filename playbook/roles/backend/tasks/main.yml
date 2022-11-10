@@ -1,0 +1,4 @@
+- name: install jdk for backend servers
+  ansible.builtin.shell: ./jdk_installation.sh
+  args:
+    chdir: /vagrant

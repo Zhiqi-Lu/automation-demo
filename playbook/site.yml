@@ -1,0 +1,11 @@
+- hosts: lbservers
+  roles:
+    - lbserver
+
+- hosts: webservers
+  roles:
+    - nginx
+
+- hosts: backendservers
+  roles:
+    - backend

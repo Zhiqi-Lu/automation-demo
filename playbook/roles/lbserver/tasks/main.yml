@@ -1,0 +1,16 @@
+- name: Install ipvsadm and keepalived
+  ansible.builtin.apt:
+    name: 
+      - ipvsadm
+      - keepalived
+    update_cache: yes
+
+- name: template keepalived conf
+  ansible.builtin.template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+
+- name: start keepalived service
+  ansible.builtin.service:
+    name: keepalived
+    state: started
