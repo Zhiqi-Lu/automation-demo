@@ -4,8 +4,4 @@
 
 - hosts: webservers
   roles:
-    - nginx
-
-- hosts: backendservers
-  roles:
-    - backend
+    - webserver

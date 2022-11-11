@@ -14,7 +14,6 @@ vrrp_instance VI_1 {
     advert_int 2
     virtual_ipaddress {
         10.11.12.50
-        10.11.12.100
     }
 }
 
@@ -27,13 +26,6 @@ virtual_server 10.11.12.50 80 {
     real_server 192.168.12.51 80 {
         weight 50
     }
-}
-
-virtual_server 10.11.12.100 80 {
-    delay_loop 4
-    lb_algo rr
-    lb_kind DR
-    protocol TCP
 
     real_server 192.168.12.52 80 {
         weight 50

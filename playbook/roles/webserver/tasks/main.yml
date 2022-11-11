@@ -20,22 +20,34 @@
     allow_unauthenticated: yes
 
 - name: set nginx conf
-  ansible.builtin.template:
-    src: default.conf.j2
+  ansible.builtin.copy:
+    src: /vagrant/nginx/default.conf
     dest: /etc/nginx/conf.d/default.conf
+    remote_src: yes
 
 - name: copy nginx arp setting
-  ansible.builtin.template:
-    src: realserver.sh.j2
+  ansible.builtin.copy:
+    src: /vagrant/nginx/realserver.sh
     dest: /etc/init.d/realserver.sh
     mode: 777
+    remote_src: yes
+
+- name: restart nginx
+  ansible.builtin.shell: ./realserver.sh
+  args:
+    chdir: /etc/init.d
 
 - name: apply arp setting on start
   ansible.builtin.shell: ./autostart.sh
   args:
     chdir: /vagrant/nginx
 
-- name: restart nginx
-  ansible.builtin.shell: ./realserver.sh
+- name: start nginx
+  ansible.builtin.service:
+    name: nginx
+    state: started
+
+- name: install jdk for spring application
+  ansible.builtin.shell: ./jdk_installation.sh
   args:
-    chdir: /etc/init.d
+    chdir: /vagrant

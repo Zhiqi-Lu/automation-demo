@@ -47,5 +47,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 #    db02.vm.network :private_network, ip: "10.11.12.62"
 #    db02.vm.network :private_network, ip: "192.168.12.62", virtualbox__intnet: true
 #  end
+#
+#  config.vm.define "db03" do |db03|
+#    db02.vm.box = "ubuntu/bionic64"
+#    db02.vm.hostname = "db03"
+#    db02.vm.network :private_network, ip: "10.11.12.63"
+#    db02.vm.network :private_network, ip: "192.168.12.63", virtualbox__intnet: true
+#  end
 
 end
