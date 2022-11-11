@@ -1,0 +1,5 @@
+#lvs+keepalived+nginx自动化脚本
+
+目前共两台lvs+keepalived服务器，两台nginx+业务服务器。请求经过lvs+keepalived转发至nginx，再由nginx转发至所在机器的业务服务进行处理。
+
+ansible playbook中lbserver用于自动化lb+keepalived的安装及配置，webserver用于nginx和jdk的安装与配置
