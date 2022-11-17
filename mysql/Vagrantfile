@@ -1,0 +1,33 @@
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  config.vm.provider :virtualbox do |vb|
+    vb.customize ["modifyvm", :id, "--memory", "1024"]
+  end
+
+  config.vm.define "db01" do |db01|
+    db01.vm.box = "ubuntu/bionic64"
+    db01.vm.hostname = "db01"
+    db01.vm.network :forwarded_port, guest: 22, host: 3201, id: "ssh"
+    db01.vm.network :private_network, ip: "10.11.12.61"
+    db01.vm.network :private_network, ip: "192.168.12.61", virtualbox__intnet: true
+  end
+
+  config.vm.define "db02" do |db02|
+    db02.vm.box = "ubuntu/bionic64"
+    db02.vm.hostname = "db02"
+    db02.vm.network :forwarded_port, guest: 22, host: 3202, id: "ssh"
+    db02.vm.network :private_network, ip: "10.11.12.62"
+    db02.vm.network :private_network, ip: "192.168.12.62", virtualbox__intnet: true
+  end
+
+  config.vm.define "db03" do |db03|
+    db03.vm.box = "ubuntu/bionic64"
+    db03.vm.hostname = "db03"
+    db03.vm.network :forwarded_port, guest: 22, host: 3203, id: "ssh"
+    db03.vm.network :private_network, ip: "10.11.12.63"
+    db03.vm.network :private_network, ip: "192.168.12.63", virtualbox__intnet: true
+  end
+
+end

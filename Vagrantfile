@@ -3,7 +3,7 @@ VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provider :virtualbox do |vb|
-    vb.customize ["modifyvm", :id, "--memory", "1024"]
+    vb.customize ["modifyvm", :id, "--memory", "512"]
   end
 
   config.vm.define "vip01" do |vip01|
@@ -49,10 +49,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 #  end
 #
 #  config.vm.define "db03" do |db03|
-#    db02.vm.box = "ubuntu/bionic64"
-#    db02.vm.hostname = "db03"
-#    db02.vm.network :private_network, ip: "10.11.12.63"
-#    db02.vm.network :private_network, ip: "192.168.12.63", virtualbox__intnet: true
+#    db03.vm.box = "ubuntu/bionic64"
+#    db03.vm.hostname = "db03"
+#    db03.vm.network :private_network, ip: "10.11.12.63"
+#    db03.vm.network :private_network, ip: "192.168.12.63", virtualbox__intnet: true
 #  end
 
 end

@@ -1,0 +1,77 @@
+- name: copy mysql server installation package
+  ansible.builtin.copy:
+    src: /vagrant/mysql-server_8.0.31-1ubuntu18.04_amd64.deb-bundle.tar
+    dest: /opt/mysql-server_8.0.31-1ubuntu18.04_amd64.deb-bundle.tar
+    remote_src: yes
+
+- name: copy mysql shell installation package
+  ansible.builtin.copy:
+    src: /vagrant/mysql-shell_8.0.31-1ubuntu18.04_amd64.deb
+    dest: /opt/mysql-shell_8.0.31-1ubuntu18.04_amd64.deb
+    remote_src: yes
+
+- name: copy mysql router installation package
+  ansible.builtin.copy:
+    src: /vagrant/mysql-router-community_8.0.31-1ubuntu18.04_amd64.deb
+    dest: /opt/mysql-router-community_8.0.31-1ubuntu18.04_amd64.deb
+    remote_src: yes
+
+- name: extract mysql server files from package
+  ansible.builtin.unarchive:
+    src: /opt/mysql-server_8.0.31-1ubuntu18.04_amd64.deb-bundle.tar
+    dest: /opt/
+    remote_src: yes
+
+- name: install mysql server prerequisite
+  ansible.builtin.apt:
+    name:
+    - libaio1
+    - libmecab2
+    state: present
+    update_cache: yes
+
+#- name: install mysql components
+#  ansible.builtin.shell:
+#    cmd: sudo dpkg -i mysql-common*.deb mysql-community-client*.deb mysql-client*.deb mysql-community-server*.deb mysql-server*.deb
+#    chdir: /opt/
+
+- name: install mysql shell
+  ansible.builtin.shell:
+    cmd: dpkg -i mysql-shell_8.0.31-1ubuntu18.04_amd64.deb
+    chdir: /opt/
+
+- name: install mysql router
+  ansible.builtin.shell:
+    cmd: dpkg -i mysql-router-community_8.0.31-1ubuntu18.04_amd64.deb
+    chdir: /opt/
+
+- name: copy mysql configuration file
+  ansible.builtin.template:
+    src: my.cnf.j2
+    dest: /etc/mysql/my.cnf
+
+- name: restart mysql service to apply new configuration
+  ansible.builtin.service:
+    name: mysql
+    state: restarted 
+
+#- name: updating mysql root configuration
+#  community.mysql.mysql_query:
+#    login_db: mysql
+#    login_user: root
+#    query:
+#    - UPDATE user SET host = '%' WHERE user = 'root'
+#    - UPDATE user SET plugin='mysql_native_password' WHERE user = 'root'
+#    - GRANT CLONE_ADMIN, CONNECTION_ADMIN, GROUP_REPLICATION_ADMIN, PERSIST_RO_VARIABLES_ADMIN, REPLICATION_APPLIER, REPLICATION_SLAVE_ADMIN, ROLE_ADMIN, SYSTEM_VARIABLES_ADMIN ON *.* TO 'root'@'%' WITH GRANT OPTION
+#    - FLUSH PRIVILEGES
+
+- name: copy mysql router configuration file
+  ansible.builtin.copy:
+    src: /vagrant/mysqlrouter.conf
+    dest: /etc/mysqlrouter
+    remote_src: yes
+
+- name: restart mysql router
+  ansible.builtin.service:
+    name: mysqlrouter
+    state: restarted
