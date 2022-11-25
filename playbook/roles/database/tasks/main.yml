@@ -27,6 +27,9 @@
     name:
     - libaio1
     - libmecab2
+    - python3-pip
+    - virtualenv
+    - libmysqlclient-dev
     state: present
     update_cache: yes
 
@@ -34,16 +37,6 @@
 #  ansible.builtin.shell:
 #    cmd: sudo dpkg -i mysql-common*.deb mysql-community-client*.deb mysql-client*.deb mysql-community-server*.deb mysql-server*.deb
 #    chdir: /opt/
-
-- name: install mysql shell
-  ansible.builtin.shell:
-    cmd: dpkg -i mysql-shell_8.0.31-1ubuntu18.04_amd64.deb
-    chdir: /opt/
-
-- name: install mysql router
-  ansible.builtin.shell:
-    cmd: dpkg -i mysql-router-community_8.0.31-1ubuntu18.04_amd64.deb
-    chdir: /opt/
 
 - name: copy mysql configuration file
   ansible.builtin.template:
@@ -55,15 +48,52 @@
     name: mysql
     state: restarted 
 
-#- name: updating mysql root configuration
-#  community.mysql.mysql_query:
-#    login_db: mysql
-#    login_user: root
-#    query:
-#    - UPDATE user SET host = '%' WHERE user = 'root'
-#    - UPDATE user SET plugin='mysql_native_password' WHERE user = 'root'
-#    - GRANT CLONE_ADMIN, CONNECTION_ADMIN, GROUP_REPLICATION_ADMIN, PERSIST_RO_VARIABLES_ADMIN, REPLICATION_APPLIER, REPLICATION_SLAVE_ADMIN, ROLE_ADMIN, SYSTEM_VARIABLES_ADMIN ON *.* TO 'root'@'%' WITH GRANT OPTION
-#    - FLUSH PRIVILEGES
+- name: setting up python environment for ansible
+  ansible.builtin.pip:
+    name: mysqlclient
+
+- name: allow outside connection to root
+  community.mysql.mysql_query:
+    login_db: mysql
+    login_user: root
+    login_password: 123456
+    query:
+    - UPDATE user SET host = '%' WHERE user = 'root'
+    - UPDATE user SET plugin='mysql_native_password' WHERE user = 'root'
+
+- name: configuring root privileges
+  community.mysql.mysql_user:
+ # login_user and login_password should be read from a config file for security reasonss
+    login_user: root
+    login_password: 123456
+    name: root
+    host_all: yes
+    append_privs: true
+    # currently this task does not work on debian 11, github issues: https://github.com/ansible-collections/community.mysql/issues/462
+    priv: '*.*: CLONE_ADMIN, CONNECTION_ADMIN, GROUP_REPLICATION_ADMIN, PERSIST_RO_VARIABLES_ADMIN, REPLICATION_APPLIER, REPLICATION_SLAVE_ADMIN, ROLE_ADMIN, SYSTEM_VARIABLES_ADMIN,GRANT'
+
+# - name: creating mysql clusteradmin user in all mysql instances
+#   community.mysql.mysql_user:
+#     login_user: root
+#     login_password: 123456
+#     name: clusteradmin
+#     host: '%'
+#     password: 123456
+#     priv: 
+#       '*.*': 'ALL'
+#      'mysql_innodb_cluster_metadata.*': 'ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE TEMPORARY TABLES, CREATE VIEW, DELETE, DROP, EVENT, EXECUTE, INDEX, INSERT, LOCK TABLES, REFERENCES, SHOW VIEW, TRIGGER, UPDATE'
+#      'mysql_innodb_cluster_metadata_bkp.*': 'ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE TEMPORARY TABLES, CREATE VIEW, DELETE, DROP, EVENT, EXECUTE, INDEX, INSERT, LOCK TABLES, REFERENCES, SHOW VIEW, TRIGGER, UPDATE'
+#      'mysql_innodb_cluster_metadata_previous.*': 'ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE TEMPORARY TABLES, CREATE VIEW, DELETE, DROP, EVENT, EXECUTE, INDEX, INSERT, LOCK TABLES, REFERENCES, SHOW VIEW, TRIGGER, UPDATE'
+
+- name: install mysql shell
+  ansible.builtin.shell:
+    cmd: dpkg -i mysql-shell_8.0.31-1ubuntu18.04_amd64.deb
+    chdir: /opt/
+
+- name: install mysql router
+  ansible.builtin.shell:
+    cmd: dpkg -i mysql-router-community_8.0.31-1ubuntu18.04_amd64.deb
+    chdir: /opt/
 
 - name: copy mysql router configuration file
   ansible.builtin.copy:
