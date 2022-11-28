@@ -1,8 +1,9 @@
-- name: Install ipvsadm and keepalived
+- name: Install ipvsadm, keepalived and haproxy
   ansible.builtin.apt:
     name: 
       - ipvsadm
       - keepalived
+      - haproxy
     update_cache: yes
 
 - name: template keepalived conf
@@ -13,4 +14,29 @@
 - name: start keepalived service
   ansible.builtin.service:
     name: keepalived
+    state: started
+
+- name: setting up haproxy autostart
+  ansible.builtin.shell:
+    cmd: sed -i 's/0/1/' haproxy 
+    chdir: /etc/default/
+
+- name: copy haproxy config file
+  ansible.builtin.copy:
+    src: haproxy.cfg
+    dest: /etc/haproxy/haproxy.cfg
+
+- name: setting up log receiver for haproxy
+  ansible.builtin.copy:
+    src: udp-localhost.conf
+    dest: /etc/rsyslog.d/udp-localhost.conf
+
+- name: restart rsyslog
+  ansible.builtin.service:
+    name: rsyslog
+    state: restarted
+
+- name: start haproxy
+  ansible.builtin.service:
+    name: haproxy
     state: started

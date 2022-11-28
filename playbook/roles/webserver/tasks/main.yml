@@ -21,16 +21,14 @@
 
 - name: set nginx conf
   ansible.builtin.copy:
-    src: /vagrant/nginx/default.conf
+    src: default.conf
     dest: /etc/nginx/conf.d/default.conf
-    remote_src: yes
 
 - name: copy nginx arp setting
   ansible.builtin.copy:
-    src: /vagrant/nginx/realserver.sh
+    src: realserver.sh
     dest: /etc/init.d/realserver.sh
     mode: 777
-    remote_src: yes
 
 - name: restart nginx
   ansible.builtin.shell: ./realserver.sh
