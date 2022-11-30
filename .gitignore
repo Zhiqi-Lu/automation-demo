@@ -7,3 +7,7 @@ build/
 *.lo
 *.deb
 *.log
+*.war
+*.zip
+.pub
+*_key

@@ -1,0 +1,23 @@
+- name: copy jenkns controller public key
+  ansible.builtin.copy:
+    src: jenkins_agent_key.pub
+    dest: /home/vagrant/jenkins_agent_key.pub
+
+- name: add jenkins controller public key to authorized_keys
+  ansible.builtin.shell:
+    cmd: cat ../jenkins_agent_key.pub >> authorized_keys
+    chdir: /home/vagrant/.ssh
+
+- name: copy java sdk
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /usr/local/java/
+    mode: '755'
+  loop:
+    - OpenJDK11U-jdk_x64_linux_hotspot_11.0.17_8.tar.gz
+    - jdk_installation.sh
+
+- name: install java for jenkins agents
+  ansible.builtin.shell: ./jdk_installation.sh
+  args:
+    chdir: /usr/local/java/

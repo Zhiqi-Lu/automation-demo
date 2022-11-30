@@ -9,3 +9,11 @@
 - hosts: databases
   roles:
     - database
+
+- hosts: jenkins_controller
+  roles:
+    - jenkins_controller
+
+- hosts: pipeline_agents
+  roles:
+    - jenkins_agents
