@@ -6,7 +6,7 @@
 - name: copy java sdk
   ansible.builtin.copy:
     src: OpenJDK11U-jdk_x64_linux_hotspot_11.0.17_8.tar.gz
-    dest: /usr/lcoal/java/
+    dest: /usr/local/java/
 
 - name: copy jenkins binary
   ansible.builtin.copy:
