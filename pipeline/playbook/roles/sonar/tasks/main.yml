@@ -1,0 +1,36 @@
+- name: install unzip
+  ansible.builtin.apt:
+    name: unzip
+    update_cache: yes
+
+- name: copy sonarqube package
+  ansible.builtin.copy:
+    src: sonarqube-9.7.1.zip
+    dest: /usr/local/sonar.zip
+
+- name: create user sonar
+  ansible.builtin.user:
+    name: sonar
+    expires: -1
+
+- name: unzip sonarqube and setting up directory ownership
+  ansible.builtin.script: sonar_setup.sh
+  args:
+    chdir: /usr/local
+
+- name: copy sonarqube configuration file
+  ansible.builtin.copy:
+    src: sonar.properties
+    dest: /usr/local/sonar/conf/sonar.properties
+
+- name: copy sonarqube service files
+  ansible.builtin.copy:
+    src: sonarqube.service
+    dest: /etc/systemd/system/sonarqube.service
+
+- name: enable sonarqube in systemd
+  ansible.builtin.systemd:
+    name: sonarqube.service
+    enabled: true
+    state: started
+    daemon_reload: true

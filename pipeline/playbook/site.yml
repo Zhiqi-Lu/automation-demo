@@ -5,3 +5,4 @@
 - hosts: pipeline_agents
   roles:
     - jenkins_agents
+    - sonar
