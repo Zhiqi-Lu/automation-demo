@@ -140,18 +140,71 @@ module "db_sg" {
     ]
 }
 
-module "ec2_web" {
-  source = "terraform-aws-modules/ec2-instance/aws"
+module "web_autoscaling" {
+  source  = "terraform-aws-modules/autoscaling/aws"
 
-  name = "${var.prefix}-web-test"
+  name = "${var.prefix}-web-autoscaling"
 
-  ami = var.ami
-  instance_type = "t2.micro"
-  key_name = "lu_joi"
-  vpc_security_group_ids = [module.public_sg.security_group_id]
-  subnet_id = module.vpc.public_subnets[0]
+  min_size = 1
+  max_size = 3
+  desired_capacity = 1
+  wait_for_capacity_timeout = 0
+  default_instance_warmup = 300
+  health_check_type = "EC2"
+  vpc_zone_identifier = [module.vpc.public_subnets[0]]
 
-  tags = {
-    Owner = "lu"
+  launch_template_name = "${var.prefix}-web-template"
+  launch_template_description = "${var.prefix} web machine launch template"
+
+  image_id = var.ami
+  instance_type = "t3.micro"
+  user_data = filebase64("${path.module}/web_init.sh")
+  security_groups = [module.public_sg.security_group_id]
+  key_name = "lu-aws"
+
+  block_device_mappings = [
+    {
+      device_name = "/dev/sda1"
+
+      ebs = {
+        volume_size = 10
+      }
+    }
+  ]
+
+  cpu_options = {
+    core_count       = 1
+    threads_per_core = 2
+  }
+
+  network_interfaces = [
+    {
+      delete_on_termination = true
+      description = "eth0"
+      device_index = 0
+      associate_public_ip_address = true
+      subnet_id = module.vpc.public_subnets[0]
+      security_groups = [module.public_sg.security_group_id]
+    }
+  ]
+
+  tag_specifications = [
+    {
+      resource_type = "instance"
+      tags = { Owner = "lu" }
+    }
+  ]
+
+  scaling_policies = {
+    avg-cpu-policy-greater-than-50 = {
+      policy_type               = "TargetTrackingScaling"
+      estimated_instance_warmup = 300
+      target_tracking_configuration = {
+        predefined_metric_specification = {
+          predefined_metric_type = "ASGAverageCPUUtilization"
+        }
+        target_value = 50.0
+      }
+    }
   }
 }
