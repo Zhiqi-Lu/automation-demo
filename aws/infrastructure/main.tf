@@ -25,9 +25,9 @@ module "vpc" {
   cidr = "10.0.0.0/16"
 
   azs = data.aws_availability_zones.azs.names
-  database_subnets = ["10.0.4.0/24"]
-  private_subnets = ["10.0.3.0/24"]
-  public_subnets = ["10.0.2.0/24", "10.0.10.0/24"]
+  database_subnets = ["10.0.30.0/24"]
+  private_subnets = ["10.0.20.0/24", "10.0.21.0/24", "10.0.22.0/24"]
+  public_subnets = ["10.0.10.0/24", "10.0.11.0/24", "10.0.12.0/24", "10.0.100.0/24"]
 
   enable_nat_gateway = true
   single_nat_gateway = true
@@ -141,70 +141,97 @@ module "db_sg" {
 }
 
 module "web_autoscaling" {
-  source  = "terraform-aws-modules/autoscaling/aws"
+  source = "./modules/web-ec2-autoscaling"
 
-  name = "${var.prefix}-web-autoscaling"
-
-  min_size = 1
-  max_size = 3
-  desired_capacity = 1
-  wait_for_capacity_timeout = 0
-  default_instance_warmup = 300
-  health_check_type = "EC2"
-  vpc_zone_identifier = [module.vpc.public_subnets[0]]
-
-  launch_template_name = "${var.prefix}-web-template"
-  launch_template_description = "${var.prefix} web machine launch template"
-
-  image_id = var.ami
-  instance_type = "t3.micro"
-  user_data = filebase64("${path.module}/web_init.sh")
+  prefix = var.prefix
+  subnets = slice(module.vpc.public_subnets, 0, 3)
+  ami = var.ami
   security_groups = [module.public_sg.security_group_id]
   key_name = "lu-aws"
-
-  block_device_mappings = [
-    {
-      device_name = "/dev/sda1"
-
-      ebs = {
-        volume_size = 10
-      }
-    }
-  ]
-
-  cpu_options = {
-    core_count       = 1
-    threads_per_core = 2
-  }
-
-  network_interfaces = [
-    {
-      delete_on_termination = true
-      description = "eth0"
-      device_index = 0
-      associate_public_ip_address = true
-      subnet_id = module.vpc.public_subnets[0]
-      security_groups = [module.public_sg.security_group_id]
-    }
-  ]
-
-  tag_specifications = [
-    {
-      resource_type = "instance"
-      tags = { Owner = "lu" }
-    }
-  ]
-
-  scaling_policies = {
-    avg-cpu-policy-greater-than-50 = {
-      policy_type               = "TargetTrackingScaling"
-      estimated_instance_warmup = 300
-      target_tracking_configuration = {
-        predefined_metric_specification = {
-          predefined_metric_type = "ASGAverageCPUUtilization"
-        }
-        target_value = 50.0
-      }
-    }
+  resource_tags = {
+    Owner = "lu"
   }
 }
+
+module "app_autoscaling" {
+  source = "./modules/app-ec2-autoscaling"
+
+  prefix = var.prefix
+  subnets = module.vpc.private_subnets
+  ami = var.ami
+  security_groups = [module.private_sg.security_group_id]
+  key_name = "lu-aws"
+  resource_tags = {
+    Owner = "lu"
+    tier = "dev"
+  }
+}
+
+# module "web_autoscaling" {
+#   source  = "terraform-aws-modules/autoscaling/aws"
+
+#   name = "${var.prefix}-web-autoscaling"
+
+#   min_size = 1
+#   max_size = 3
+#   desired_capacity = 1
+#   wait_for_capacity_timeout = 0
+#   default_instance_warmup = 300
+#   health_check_type = "EC2"
+#   vpc_zone_identifier = [module.vpc.public_subnets[0]]
+
+#   launch_template_name = "${var.prefix}-web-template"
+#   launch_template_description = "${var.prefix} web machine launch template"
+
+#   image_id = var.ami
+#   instance_type = "t3.micro"
+#   user_data = filebase64("${path.module}/web_init.sh")
+#   security_groups = [module.public_sg.security_group_id]
+#   key_name = "lu-aws"
+
+#   block_device_mappings = [
+#     {
+#       device_name = "/dev/sda1"
+
+#       ebs = {
+#         volume_size = 10
+#       }
+#     }
+#   ]
+
+#   cpu_options = {
+#     core_count       = 1
+#     threads_per_core = 2
+#   }
+
+#   network_interfaces = [
+#     {
+#       delete_on_termination = true
+#       description = "eth0"
+#       device_index = 0
+#       associate_public_ip_address = true
+#       subnet_id = module.vpc.public_subnets[0]
+#       security_groups = [module.public_sg.security_group_id]
+#     }
+#   ]
+
+#   tag_specifications = [
+#     {
+#       resource_type = "instance"
+#       tags = { Owner = "lu" }
+#     }
+#   ]
+
+#   scaling_policies = {
+#     avg-cpu-policy-greater-than-50 = {
+#       policy_type               = "TargetTrackingScaling"
+#       estimated_instance_warmup = 300
+#       target_tracking_configuration = {
+#         predefined_metric_specification = {
+#           predefined_metric_type = "ASGAverageCPUUtilization"
+#         }
+#         target_value = 50.0
+#       }
+#     }
+#   }
+# }
