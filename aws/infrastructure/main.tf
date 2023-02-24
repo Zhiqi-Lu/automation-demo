@@ -95,7 +95,7 @@ module "private_sg" {
     {
       from_port   = 0
       to_port     = 0
-      protocol    = "tcp"
+      protocol    = -1
       description = "internal"
       cidr_blocks = module.vpc.vpc_cidr_block
     }
@@ -122,7 +122,7 @@ module "db_sg" {
   ingress_with_cidr_blocks = [
     {
       from_port   = 0
-      to_port     = 0
+      to_port     = 20000
       protocol    = "tcp"
       description = "internal"
       cidr_blocks = module.vpc.vpc_cidr_block
@@ -157,81 +157,48 @@ module "app_autoscaling" {
   source = "./modules/app-ec2-autoscaling"
 
   prefix = var.prefix
+  vpc_id = module.vpc.vpc_id
   subnets = module.vpc.private_subnets
   ami = var.ami
   security_groups = [module.private_sg.security_group_id]
   key_name = "lu-aws"
   resource_tags = {
     Owner = "lu"
-    tier = "dev"
+    tier = "app"
   }
 }
 
-# module "web_autoscaling" {
-#   source  = "terraform-aws-modules/autoscaling/aws"
+module "app_gateway" {
+  source = "terraform-aws-modules/apigateway-v2/aws"
 
-#   name = "${var.prefix}-web-autoscaling"
+  name = "${var.prefix}-app-apigateway"
+  protocol_type = "HTTP"
+  create_api_domain_name = false
 
-#   min_size = 1
-#   max_size = 3
-#   desired_capacity = 1
-#   wait_for_capacity_timeout = 0
-#   default_instance_warmup = 300
-#   health_check_type = "EC2"
-#   vpc_zone_identifier = [module.vpc.public_subnets[0]]
+  cors_configuration = {
+    allow_headers = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token", "x-amz-user-agent"]
+    allow_methods = ["*"]
+    allow_origins = ["*"]
+  }
 
-#   launch_template_name = "${var.prefix}-web-template"
-#   launch_template_description = "${var.prefix} web machine launch template"
+  integrations = {
+    "GET /clients" = {
+      integration_type = "HTTP_PROXY"
+      integration_uri = module.app_autoscaling.http_tcp_listener_arns[0]
+      integration_method = "ANY"
+      connection_type = "VPC_LINK"
+      vpc_link = "my-vpc"
+    }
+  }
 
-#   image_id = var.ami
-#   instance_type = "t3.micro"
-#   user_data = filebase64("${path.module}/web_init.sh")
-#   security_groups = [module.public_sg.security_group_id]
-#   key_name = "lu-aws"
+  vpc_links = {
+    my-vpc = {
+      name               = "${var.prefix}-api-gateway-vpc-link"
+      security_group_ids = [module.public_sg.security_group_id]
+      subnet_ids         = module.vpc.public_subnets
+    }
+  }
 
-#   block_device_mappings = [
-#     {
-#       device_name = "/dev/sda1"
+  
+}
 
-#       ebs = {
-#         volume_size = 10
-#       }
-#     }
-#   ]
-
-#   cpu_options = {
-#     core_count       = 1
-#     threads_per_core = 2
-#   }
-
-#   network_interfaces = [
-#     {
-#       delete_on_termination = true
-#       description = "eth0"
-#       device_index = 0
-#       associate_public_ip_address = true
-#       subnet_id = module.vpc.public_subnets[0]
-#       security_groups = [module.public_sg.security_group_id]
-#     }
-#   ]
-
-#   tag_specifications = [
-#     {
-#       resource_type = "instance"
-#       tags = { Owner = "lu" }
-#     }
-#   ]
-
-#   scaling_policies = {
-#     avg-cpu-policy-greater-than-50 = {
-#       policy_type               = "TargetTrackingScaling"
-#       estimated_instance_warmup = 300
-#       target_tracking_configuration = {
-#         predefined_metric_specification = {
-#           predefined_metric_type = "ASGAverageCPUUtilization"
-#         }
-#         target_value = 50.0
-#       }
-#     }
-#   }
-# }

@@ -13,4 +13,5 @@ mysql安装后对root用户的权限处理等暂未自动化，需要手动执�
 # terraform 管理aws
 使用terraform workspace命令来切换不同的环境，在apply时使用-var-file参数来指定对应的变量文件
 
-不同环境中的计算资源根据aws auto scaling groups policy进行扩容和缩容，计算资源在初始化时会自动安装docker，*登录私服并运行最新镜像有待完成*
+不同层次中的计算资源根据各自的aws auto scaling groups policy进行扩容和缩容，计算资源在初始化时会自动安装docker，*登录私服并运行最新镜像有待完成*
+外部访问app层时可以通过api gateway访问位于app层的internal load balancer进而访问到真正的后端服务

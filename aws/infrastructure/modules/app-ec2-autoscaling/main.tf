@@ -20,6 +20,8 @@ module "app_autoscaling" {
   security_groups = var.security_groups
   key_name = var.key_name
 
+  target_group_arns = module.app_lb.target_group_arns
+
   block_device_mappings = [
     {
       device_name = "/dev/sda1"
@@ -40,7 +42,7 @@ module "app_autoscaling" {
       delete_on_termination = true
       description = "eth0"
       device_index = 0
-      associate_public_ip_address = true
+      associate_public_ip_address = false
       security_groups = var.security_groups
     }
   ]
@@ -59,4 +61,36 @@ module "app_autoscaling" {
   }
 
   tags = var.resource_tags
+}
+
+module "app_lb" {
+  source  = "terraform-aws-modules/alb/aws"
+
+  name = "${var.prefix}-app-internal-load-balancer"
+  load_balancer_type = "application"
+  internal = true
+
+  vpc_id = var.vpc_id
+  security_groups = var.security_groups
+  subnets = var.subnets
+  
+  enable_cross_zone_load_balancing = true
+
+  http_tcp_listeners = [
+    {
+      port = 80
+      protocol = "HTTP"
+      target_group_index = 0
+      action_type = "forward"
+    }
+  ]
+
+  target_groups = [
+    {
+      backend_protocol = "HTTP"
+      backend_port     = 80
+      target_type      = "instance"
+    }
+  ]
+
 }
