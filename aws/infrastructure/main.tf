@@ -170,36 +170,14 @@ module "app_autoscaling" {
   }
 }
 
-module "app_gateway" {
-  source = "terraform-aws-modules/apigateway-v2/aws"
+module "pipeline" {
+  source = "./modules/pipeline"
 
-  name = "${var.prefix}-app-apigateway"
-  protocol_type = "HTTP"
-  create_api_domain_name = false
-
-  cors_configuration = {
-    allow_headers = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token", "x-amz-user-agent"]
-    allow_methods = ["*"]
-    allow_origins = ["*"]
-  }
-
-  integrations = {
-    "GET /clients" = {
-      integration_type = "HTTP_PROXY"
-      integration_uri = module.app_autoscaling.http_tcp_listener_arns[0]
-      integration_method = "ANY"
-      connection_type = "VPC_LINK"
-      vpc_link = "my-vpc"
-    }
-  }
-
-  vpc_links = {
-    my-vpc = {
-      name               = "${var.prefix}-api-gateway-vpc-link"
-      security_group_ids = [module.public_sg.security_group_id]
-      subnet_ids         = module.vpc.public_subnets
-    }
-  }
-  
+  prefix = var.prefix
+  public_subnets = module.vpc.public_subnets
+  ami = var.ami
+  public_security_groups = [module.public_sg.security_group_id]
+  Owner = "lu"
 }
+
 
