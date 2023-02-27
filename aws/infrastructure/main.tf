@@ -158,9 +158,11 @@ module "app_autoscaling" {
 
   prefix = var.prefix
   vpc_id = module.vpc.vpc_id
-  subnets = module.vpc.private_subnets
+  private_subnets = module.vpc.private_subnets
+  public_subnets = module.vpc.public_subnets
   ami = var.ami
-  security_groups = [module.private_sg.security_group_id]
+  private_security_groups = [module.private_sg.security_group_id]
+  public_security_groups = [module.public_sg.security_group_id]
   key_name = "lu-aws"
   resource_tags = {
     Owner = "lu"
@@ -198,7 +200,6 @@ module "app_gateway" {
       subnet_ids         = module.vpc.public_subnets
     }
   }
-
   
 }
 

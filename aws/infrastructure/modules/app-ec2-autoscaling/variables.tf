@@ -7,13 +7,23 @@ variable "vpc_id" {
   type = string
 }
 
-variable "subnets" {
+variable "private_subnets" {
   description = "the subnets to launch resources in, note that subnets also determines availability zones"
   type = list(string)
 }
 
-variable "security_groups" {
+variable "public_subnets" {
+  description = "the subnets to launch api gateway in"
+  type = list(string)
+}
+
+variable "private_security_groups" {
   description = "the security groups to associate with the auto scaling group"
+  type = list(string)
+}
+
+variable "public_security_groups" {
+  description = "the security groups to associate with api gateway"
   type = list(string)
 }
 

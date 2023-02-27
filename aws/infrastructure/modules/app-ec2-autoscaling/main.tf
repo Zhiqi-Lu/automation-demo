@@ -9,7 +9,7 @@ module "app_autoscaling" {
   wait_for_capacity_timeout = 0
   default_instance_warmup = 300
   health_check_type = "EC2"
-  vpc_zone_identifier = var.subnets
+  vpc_zone_identifier = var.private_subnets
 
   launch_template_name = "${var.prefix}-app-template"
   launch_template_description = "${var.prefix} app machine launch template"
@@ -17,7 +17,7 @@ module "app_autoscaling" {
   image_id = var.ami
   instance_type = "t3.micro"
   user_data = filebase64("${path.module}/app_init.sh")
-  security_groups = var.security_groups
+  security_groups = var.private_security_groups
   key_name = var.key_name
 
   target_group_arns = module.app_lb.target_group_arns
@@ -92,5 +92,37 @@ module "app_lb" {
       target_type      = "instance"
     }
   ]
+}
 
+module "app_gateway" {
+  source = "terraform-aws-modules/apigateway-v2/aws"
+
+  name = "${var.prefix}-app-apigateway"
+  protocol_type = "HTTP"
+  create_api_domain_name = false
+
+  cors_configuration = {
+    allow_headers = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token", "x-amz-user-agent"]
+    allow_methods = ["*"]
+    allow_origins = ["*"]
+  }
+
+  integrations = {
+    "GET /clients" = {
+      integration_type = "HTTP_PROXY"
+      integration_uri = module.app_autoscaling.http_tcp_listener_arns[0]
+      integration_method = "ANY"
+      connection_type = "VPC_LINK"
+      vpc_link = "my-vpc"
+    }
+  }
+
+  vpc_links = {
+    my-vpc = {
+      name               = "${var.prefix}-api-gateway-vpc-link"
+      security_group_ids = var.public_security_groups
+      subnet_ids         = var.public_subnets
+    }
+  }
+  
 }
