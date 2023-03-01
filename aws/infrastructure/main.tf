@@ -23,6 +23,7 @@ module "vpc" {
 
   name = "${var.prefix}-test-vpc"
   cidr = "10.0.0.0/16"
+  enable_dns_hostnames = true
 
   azs = data.aws_availability_zones.azs.names
   database_subnets = ["10.0.30.0/24"]
