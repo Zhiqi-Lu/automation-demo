@@ -8,7 +8,7 @@ resource "aws_instance" "jenkins_controller" {
 
   tags = {
     Name = "${var.prefix}-joi-jenkins-controller"
-    Owner = var.owner
+    Owner = var.Owner
   }
 }
 
@@ -22,7 +22,7 @@ resource "aws_instance" "jenkins_agent1" {
 
   tags = {
     Name = "${var.prefix}-joi-jenkins-agent"
-    Owner = var.owner
+    Owner = var.Owner
   }
 }
 
@@ -35,7 +35,7 @@ resource "aws_instance" "sonarqube" {
   private_ip = "10.0.100.20"
   tags = {
     Name = "${var.prefix}-sonarqube"
-    Owner = var.owner
+    Owner = var.Owner
   }
 }
 
@@ -53,6 +53,6 @@ resource "aws_instance" "nexus_repo" {
 
   tags = {
     Name = "${var.prefix}-nexus"
-    Owner = var.owner
+    Owner = var.Owner
   }
 }

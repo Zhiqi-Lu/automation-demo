@@ -43,7 +43,7 @@ module "app_autoscaling" {
       description = "eth0"
       device_index = 0
       associate_public_ip_address = false
-      security_groups = var.security_groups
+      security_groups = var.private_security_groups
     }
   ]
 
@@ -71,8 +71,8 @@ module "app_lb" {
   internal = true
 
   vpc_id = var.vpc_id
-  security_groups = var.security_groups
-  subnets = var.subnets
+  security_groups = var.private_security_groups
+  subnets = var.private_subnets
   
   enable_cross_zone_load_balancing = true
 
@@ -108,9 +108,9 @@ module "app_gateway" {
   }
 
   integrations = {
-    "GET /clients" = {
+    "GET /" = {
       integration_type = "HTTP_PROXY"
-      integration_uri = module.app_autoscaling.http_tcp_listener_arns[0]
+      integration_uri = module.app_lb.http_tcp_listener_arns[0]
       integration_method = "ANY"
       connection_type = "VPC_LINK"
       vpc_link = "my-vpc"

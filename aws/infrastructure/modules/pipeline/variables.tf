@@ -4,7 +4,7 @@ variable "prefix" {
 
 variable "public_subnet" {
   description = "the subnets to launch api gateway in"
-  type = list(string)
+  type = string
 }
 
 variable "public_security_groups" {

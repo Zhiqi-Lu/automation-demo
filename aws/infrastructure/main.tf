@@ -174,7 +174,7 @@ module "pipeline" {
   source = "./modules/pipeline"
 
   prefix = var.prefix
-  public_subnets = module.vpc.public_subnets
+  public_subnet = module.vpc.public_subnets[3]
   ami = var.ami
   public_security_groups = [module.public_sg.security_group_id]
   Owner = "lu"
