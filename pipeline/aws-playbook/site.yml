@@ -1,0 +1,19 @@
+- hosts: jenkins_controller
+  roles:
+    - jenkins_controller
+
+- hosts: jenkins_agents
+  roles:
+    - jenkins_agents
+
+# - hosts: sonarqube
+#   roles:
+#     - sonar
+
+- hosts: nexus
+  roles:
+    - nexus
+
+- hosts: harbor
+  roles:
+    - harbor

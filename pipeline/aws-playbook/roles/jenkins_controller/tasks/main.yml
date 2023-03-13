@@ -1,0 +1,30 @@
+- name: add jenkins repo to apt
+  ansible.builtin.script: jenkins_repo.sh
+
+- name: install jenkins prerequisite
+  ansible.builtin.apt:
+    name:
+      - openjdk-11-jdk
+      - fontconfig
+    update_cache: yes
+
+- name: install jenkins
+  ansible.builtin.apt:
+    name: jenkins
+    update_cache: yes
+
+- name: copy jenkins ssh keys
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /home/ubuntu/.ssh
+  loop:
+    - jenkins_agent_key
+    - jenkins_agent_key.pub
+
+- name: copy github private key
+  ansible.builtin.copy:
+    src: id_rsa
+    dest: /var/lib/jenkins/.ssh/
+
+# - name: ssh keyscan
+#   ansible.builtin.shell: ssh-keyscan -H 192.168.12.21 >> /home/ubuntu/.ssh/known_hosts

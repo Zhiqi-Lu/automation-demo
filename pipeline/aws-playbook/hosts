@@ -1,0 +1,22 @@
+pipeline01 ansible_ssh_host=10.0.100.10
+pipeline02 ansible_ssh_host=10.0.100.11
+pipeline04 ansible_ssh_host=10.0.100.30
+pipeline05 ansible_ssh_host=10.0.100.40
+
+[all:vars]
+ansible_ssh_private_key_file=~/.ssh/lu-aws.pem
+
+[jenkins_controller]
+pipeline01
+
+[jenkins_agents]
+pipeline02
+
+[sonarqube]
+pipeline03
+
+[nexus]
+pipeline04
+
+[harbor]
+pipeline05

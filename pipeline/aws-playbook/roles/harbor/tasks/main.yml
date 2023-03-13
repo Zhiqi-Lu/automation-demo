@@ -1,0 +1,16 @@
+- name: download harbor
+  ansible.builtin.shell: wget https://github.com/goharbor/harbor/releases/download/v2.5.6/harbor-offline-installer-v2.5.6.tgz -P /opt/
+
+- name: unpack harbor package
+  ansible.builtin.unarchive:
+    src: /opt/harbor-offline-installer-v2.5.6.tgz
+    dest: /opt
+    remote_src: yes
+
+- name: copy harbor config
+  ansible.builtin.copy:
+    src: harbor.yml
+    dest: /opt/harbor/harbor.yml
+
+- name: start harbor
+  ansible.builtin.shell: bash /opt/harbor/install.sh

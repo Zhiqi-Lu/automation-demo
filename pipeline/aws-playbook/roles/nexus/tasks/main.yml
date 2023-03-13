@@ -1,0 +1,37 @@
+- name: download nexus oss
+  ansible.builtin.shell: wget https://download.sonatype.com/nexus/3/nexus-3.49.0-02-unix.tar.gz -P /opt/
+
+- name: install java for nexus
+  ansible.builtin.apt:
+    name: openjdk-8-jdk
+    update_cache: yes
+
+- name: unpack nexus package
+  ansible.builtin.unarchive:
+    src: /opt/nexus-3.49.0-02-unix.tar.gz
+    dest: /opt
+    remote_src: yes
+
+- name: create nexus user
+  ansible.builtin.user:
+    name: nexus
+    password: nexus
+    expires: -1
+
+- name: link nexus bin to init.d
+  ansible.builtin.shell: ln -s /opt/nexus-3.49.0-02/bin/nexus /etc/init.d/nexus
+
+- name: copy nexus systemd file
+  ansible.builtin.copy:
+    src: nexus.service
+    dest: /etc/systemd/system/nexus.service
+
+- name: change nexus dir owner to nexus
+  ansible.builtin.script: nexus_prep.sh
+
+- name: start nexus service
+  ansible.builtin.systemd:
+    name: nexus.service
+    enabled: true
+    state: started
+    daemon_reload: true

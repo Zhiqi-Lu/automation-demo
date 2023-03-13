@@ -1,0 +1,34 @@
+- name: copy jenkns controller public key
+  ansible.builtin.copy:
+    src: jenkins_agent_key.pub
+    dest: /home/ubuntu/jenkins_agent_key.pub
+
+- name: add jenkins controller public key to authorized_keys
+  ansible.builtin.shell:
+    cmd: cat ../jenkins_agent_key.pub >> authorized_keys
+    chdir: /home/ubuntu/.ssh
+
+- name: add nodesource to apt
+  ansible.builtin.script: node_setup_16.sh
+
+- name: install java, nodejs and docker for jenkins agents
+  ansible.builtin.apt:
+    name: 
+      - ansible
+      - openjdk-11-jdk
+      - nodejs
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    update_cache: yes
+
+- name: set up docker nexus registry
+  ansible.builtin.copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+
+- name: restart docker
+  ansible.builtin.service:
+    name: docker
+    state: restarted
