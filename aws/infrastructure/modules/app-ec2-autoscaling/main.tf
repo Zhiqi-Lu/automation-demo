@@ -73,7 +73,7 @@ module "app_lb" {
   vpc_id = var.vpc_id
   security_groups = var.private_security_groups
   subnets = var.private_subnets
-  
+
   enable_cross_zone_load_balancing = true
 
   http_tcp_listeners = [
@@ -81,7 +81,6 @@ module "app_lb" {
       port = 80
       protocol = "HTTP"
       target_group_index = 0
-      action_type = "forward"
     }
   ]
 
@@ -108,7 +107,7 @@ module "app_gateway" {
   }
 
   integrations = {
-    "GET /" = {
+    "GET /clients/summary" = {
       integration_type = "HTTP_PROXY"
       integration_uri = module.app_lb.http_tcp_listener_arns[0]
       integration_method = "ANY"

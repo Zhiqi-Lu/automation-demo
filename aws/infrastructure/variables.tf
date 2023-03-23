@@ -9,3 +9,7 @@ variable "my-ip" {
 variable "ami" {
   description = "ec2 instance ami id"
 }
+
+variable "db_pass" {
+  type = string
+}

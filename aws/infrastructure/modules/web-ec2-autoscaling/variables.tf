@@ -2,6 +2,11 @@ variable "prefix" {
   description = "the environment depoyed in, e.g. dev, qa, prod"
 }
 
+variable "vpc_id" {
+  description = "vpc id"
+  type = string
+}
+
 variable "subnets" {
   description = "the subnets to launch resources in, note that subnets also determines availability zones"
   type = list(string)

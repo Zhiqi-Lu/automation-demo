@@ -20,6 +20,8 @@ module "web_autoscaling" {
   security_groups = var.security_groups
   key_name = var.key_name
 
+  target_group_arns = module.web_lb.target_group_arns
+
   block_device_mappings = [
     {
       device_name = "/dev/sda1"
@@ -59,4 +61,34 @@ module "web_autoscaling" {
   }
 
   tags = var.resource_tags
+}
+
+module "web_lb" {
+  source  = "terraform-aws-modules/alb/aws"
+
+  name = "${var.prefix}-web-load-balancer"
+  load_balancer_type = "application"
+
+  vpc_id = var.vpc_id
+  security_groups = var.security_groups
+  subnets = var.subnets
+
+  enable_cross_zone_load_balancing = true
+
+
+  http_tcp_listeners = [
+    {
+      port = 80
+      protocol = "HTTP"
+      target_group_index = 0
+    }
+  ]
+
+  target_groups = [
+    {
+      backend_protocol = "HTTP"
+      backend_port     = 80
+      target_type      = "instance"
+    }
+  ]
 }

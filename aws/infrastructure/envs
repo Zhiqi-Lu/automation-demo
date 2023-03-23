@@ -1,0 +1,5 @@
+SPRING_PROFILES_ACTIVE="prod"
+SERVER_PORT="8080"
+DB_URL="terraform-20230322083213178200000008.c2odmfbiqz1o.ap-northeast-1.rds.amazonaws.com"
+DB_USERNAME="root"
+DB_PASSWORD="Password.."

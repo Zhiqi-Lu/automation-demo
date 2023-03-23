@@ -26,15 +26,16 @@ module "vpc" {
   enable_dns_hostnames = true
 
   azs = data.aws_availability_zones.azs.names
-  database_subnets = ["10.0.30.0/24"]
+  database_subnets = ["10.0.30.0/24", "10.0.31.0/24" ,"10.0.32.0/24"]
   private_subnets = ["10.0.20.0/24", "10.0.21.0/24", "10.0.22.0/24"]
   public_subnets = ["10.0.10.0/24", "10.0.11.0/24", "10.0.12.0/24", "10.0.100.0/24"]
+
+  # database_subnet_group_name = "${var.prefix}-db-subnet-group"
 
   enable_nat_gateway = true
   single_nat_gateway = true
   one_nat_gateway_per_az = false
 
-  create_database_subnet_group = false
   create_database_nat_gateway_route = false
   create_database_subnet_route_table = true
 
@@ -144,6 +145,7 @@ module "db_sg" {
 module "web_autoscaling" {
   source = "./modules/web-ec2-autoscaling"
 
+  vpc_id = module.vpc.vpc_id
   prefix = var.prefix
   subnets = slice(module.vpc.public_subnets, 0, 3)
   ami = var.ami
@@ -181,4 +183,23 @@ module "pipeline" {
   Owner = "lu"
 }
 
+resource "aws_db_instance" "joi_app_db" {
+  allocated_storage = 10
+  multi_az = true
+  db_name = "joinews"
+  engine = "postgres"
+  engine_version = "14.5"
+  instance_class = "db.t3.micro"
+  username = "root"
+  password = var.db_pass
+  skip_final_snapshot  = true
+  port = 5432
 
+  db_subnet_group_name = module.vpc.database_subnet_group_name
+  vpc_security_group_ids = [module.db_sg.security_group_id]
+
+  tags = {
+    Name = "joi_app_db"
+    Owner = "lu"
+  }
+}

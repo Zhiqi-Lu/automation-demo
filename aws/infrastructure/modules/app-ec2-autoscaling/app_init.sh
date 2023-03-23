@@ -15,8 +15,8 @@ sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 # add nexus docker registry address
 cat > /etc/docker/daemon.json<<EOF
 {
-        "registry-mirrors" : ["http://10.0.100.30:8200", "http://10.0.100.30:8200"],
-        "insecure-registries" : ["10.0.100.30:8200", "10.0.100.30:8300", "http://10.0.100.40:80"]
+        "registry-mirrors" : ["http://10.0.100.30:8200"],
+        "insecure-registries" : ["10.0.100.30:8200", "http://10.0.100.40:80"]
 }
 EOF
 
